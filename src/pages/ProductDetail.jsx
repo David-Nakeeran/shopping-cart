@@ -2,7 +2,8 @@ import { useParams } from "react-router-dom";
 import{useState, useEffect} from 'react';
 
 export default function ProductDetail() {
-    const [product, setProduct] = useState()
+    const [product, setProduct] = useState(null)
+    const [quantity, setQuantity] = useState(1)
     const {id} = useParams()
     
 
@@ -26,10 +27,28 @@ export default function ProductDetail() {
         const abortController = new AbortController();
         getProducts()
         return () => abortController.abort()
-    }, []);
+    }, [id]);
 
     return (
-        <h1>Product Detail page</h1>
-        
+        <>
+        {product ?
+            <div className="product-detail" key={product.id}>
+                <div>
+                    <img src={`${product.image}`} alt={`image of ${product.name}`}></img>
+                </div>
+                <div>
+                    <p>{product.title}</p>
+                    <p>{product.description}</p>
+                    <p>£{product.price}</p>
+                </div>
+                <div className="product-quantity">
+                    <button>-</button>
+                    <input type='number' value={quantity} readOnly/>
+                    <button>+</button>
+                </div>
+                <button>Buy now</button>
+            </div>
+        : <h2>Loading...</h2>}
+        </>
     )
 }
