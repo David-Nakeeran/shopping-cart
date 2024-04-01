@@ -1,12 +1,38 @@
-import { useParams } from "react-router-dom";
-import{useState, useEffect} from 'react';
+import { Link, useParams, useOutletContext } from "react-router-dom";
+import{useEffect, useContext} from 'react';
+import { AppContext } from "../App";
+import Modal from "../components/Modal.jsx";
+
 
 export default function ProductDetail() {
-    const [product, setProduct] = useState(null)
-    const [quantity, setQuantity] = useState(1)
+    
+    const {product, setProduct, setCart, cart, isModalOpen, setIsModalOpen} = useContext(AppContext);
+    
     const {id} = useParams()
     
 
+    function addToCart() {
+        setCart(prevState => {
+            if(prevState === null) {
+                return [{...product, quantity: 1}]
+            } else {
+                const isProductInCart = prevState.some(item => item.id === product.id)
+
+                if(isProductInCart) {
+                    return prevState
+                
+                } else {
+                    console.log(prevState);
+                    return [...prevState,
+                        {...product, quantity: 1}
+                    ];
+                };
+            }
+            
+        });
+    };
+
+    console.log(cart);
     async function getProducts() {
         try {
             const response = await fetch(`https://fakestoreapi.com/products/${id}`);
@@ -14,7 +40,6 @@ export default function ProductDetail() {
                 throw Error(response.status)
             }
             const data = await response.json();
-            console.log(data);
             setProduct(data);
         } catch(error) {
             console.error(error)
@@ -27,28 +52,34 @@ export default function ProductDetail() {
         const abortController = new AbortController();
         getProducts()
         return () => abortController.abort()
-    }, [id]);
+    }, []);
+
+    if(!product) {
+        return <h2>Loading...</h2>
+    }
 
     return (
         <>
-        {product ?
+        {/* {product ? */}
             <div className="product-detail" key={product.id}>
+                <Link to='../..'
+                relative="path"
+                >Back to shop</Link>
                 <div>
                     <img src={`${product.image}`} alt={`image of ${product.name}`}></img>
                 </div>
                 <div>
                     <p>{product.title}</p>
                     <p>{product.description}</p>
-                    <p>£{product.price}</p>
+                    <p>£{product.price && product.price.toFixed(2)}</p>
                 </div>
-                <div className="product-quantity">
-                    <button>-</button>
-                    <input type='number' value={quantity} readOnly/>
-                    <button>+</button>
-                </div>
-                <button>Buy now</button>
+                <button onClick={() => {
+                    addToCart() 
+                    setIsModalOpen(true)
+                }}>Add to cart</button>
+                {isModalOpen && <Modal />}
             </div>
-        : <h2>Loading...</h2>}
+        {/* : <h2>Loading...</h2>} */}
         </>
     )
 }
