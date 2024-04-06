@@ -2,6 +2,6 @@
 
 export default function Footer() {
     return (
-        <h2>footer goes here</h2>
+        <footer>&#169; 2024 Shopping Cart</footer>
     )
 }
