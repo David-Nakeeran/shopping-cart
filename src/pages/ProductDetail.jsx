@@ -1,14 +1,16 @@
-import { Link, useParams, useOutletContext } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import{useEffect, useContext} from 'react';
 import { AppContext } from "../App";
 import Modal from "../components/Modal.jsx";
+import { useProductData } from "../hooks/useProductData.js";
 
 
 export default function ProductDetail() {
     
-    const {product, setProduct, setCart, cart, isModalOpen, setIsModalOpen} = useContext(AppContext);
+    const {product, setProduct, setCart, cart, loading, setLoading, isModalOpen, setIsModalOpen} = useContext(AppContext);
     
-    const {id} = useParams()
+    const {id} = useParams();
+    const location = useLocation();
     
 
     function addToCart() {
@@ -32,54 +34,50 @@ export default function ProductDetail() {
         });
     };
 
-    console.log(cart);
-    async function getProducts() {
-        try {
-            const response = await fetch(`https://fakestoreapi.com/products/${id}`);
-            if(!response.ok) {
-                throw Error(response.status)
-            }
-            const data = await response.json();
-            setProduct(data);
-        } catch(error) {
-            console.error(error)
-            return []
-        }
-        
-    }
-
+    
     useEffect(() => {
         const abortController = new AbortController();
-        getProducts()
+        async function loadProduct() {
+            setLoading(true);
+            const data = await useProductData(id);
+            setProduct(data);
+            setLoading(false);
+        }
+        loadProduct();
         return () => abortController.abort()
     }, []);
 
-    if(!product) {
+    
+    if(loading) {
         return <h2>Loading...</h2>
     }
 
+    const search = location.state?.search || '';
+    const category = location.state?.category || 'all';
+
     return (
         <>
-        {/* {product ? */}
-            <div className="product-detail" key={product.id}>
-                <Link to='../..'
+            <Link to={`../..?${search}`}
                 relative="path"
-                >Back to shop</Link>
-                <div>
+                className="back-link"
+                >{`...Back to ${category.replace('-', ' ')}  products`}</Link>
+            <div className="product-detail-container" key={product.id}>
+                <h2 className="product-title">{product.title}</h2>
+                <div className="product-detail-img-container">
                     <img src={`${product.image}`} alt={`image of ${product.name}`}></img>
                 </div>
                 <div>
-                    <p>{product.title}</p>
                     <p>{product.description}</p>
                     <p>£{product.price && product.price.toFixed(2)}</p>
                 </div>
-                <button onClick={() => {
+                <button 
+                className="add-to-cart"
+                onClick={() => {
                     addToCart() 
                     setIsModalOpen(true)
                 }}>Add to cart</button>
                 {isModalOpen && <Modal />}
             </div>
-        {/* : <h2>Loading...</h2>} */}
         </>
     )
 }
