@@ -2,7 +2,7 @@ import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import { useState, createContext } from 'react';
 import Home from './pages/Home';
 import Shop, {loader as shopLoader} from './pages/Shop';
-import ProductDetail from './pages/ProductDetail';
+import ProductDetail, {loader as productDetailLoader} from './pages/ProductDetail';
 import Layout from './components/Layout';
 import Cart from './pages/Cart';
 import NotFound from './pages/NotFound';
@@ -54,7 +54,7 @@ function App() {
         {
           path: 'shop/:productname/:id',
           element: <ProductDetail />,
-          
+          loader: productDetailLoader,
         },
         {path: 'cart', element: <Cart />, },
         {path: 'login', element: <Login />},
